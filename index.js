@@ -1,7 +1,6 @@
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
-const path = require("path");
 
 const app = express();
 const port = 3001;
@@ -32,9 +31,11 @@ app.get("/", (req, res) => {
   connection.query(
     "SELECT * FROM crate_items",
     function (error, results, fields) {
-      console.log("Koca: ", results);
-      console.log("fields: ", fields);
-      console.log("error: ", error);
+      if (results) {
+        res.send(results);
+      } else {
+        res.send(error);
+      }
     }
   );
 });
@@ -43,10 +44,11 @@ app.get("/items-list", (req, res) => {
   connection.query(
     "SELECT * FROM crate_items",
     function (error, results, fields) {
-      console.log("Koca: ", results);
-      console.log("fields: ", fields);
-      console.log("error: ", error);
-      res.send(results);
+      if (results) {
+        res.send(results);
+      } else {
+        res.send(error);
+      }
     }
   );
 });
@@ -55,39 +57,58 @@ app.get("/crates-list", (req, res) => {
   connection.query(
     "SELECT * FROM crate_info",
     function (error, results, fields) {
-      console.log("Koca: ", results);
-      console.log("fields: ", fields);
-      console.log("error: ", error);
-      res.send(results);
+      if (results) {
+        res.send(results);
+      } else {
+        res.send(error);
+      }
     }
   );
 });
 
 app.get("/create-client", (req, res) => {
-  const userdId = req.email;
+  const userdId = req.body.userdId;
+  const company_id = req.body.companyId;
+  const employee_email = req.body.email;
+  const password = req.body.password;
+  const firstName = req.body.employee_firstname;
+  const lastName = req.body.employee_lastname;
+  const employee_role = req.body.employeeRole;
+  const employee_department = req.body.branch;
+  const employee_contact = req.body.employeeRole;
   connection.query(
-    `INSERT INTO users VALUES (NULL, ${userdId}, '1', 'afasdfw', 'sadf', 'asdfasd', 'sadf', 'manager', 'fasdfasdf', '324134')`,
+    `INSERT INTO users VALUES (NULL, ${userdId}, ${company_id}, ${employee_email}, ${password}, ${firstName}, ${lastName}, ${employee_role}, ${employee_department}, ${employee_contact})`,
     (error, results, fields) => {
-      console.log("Koca: error", error);
-      console.log("Koca: results", results);
+      if (results) {
+        res.send(results);
+      } else {
+        res.send(error);
+      }
     }
   );
 });
 
 app.get("/get-clients", (req, res) => {
   connection.query(`SELECT * FROM users`, (error, results, fields) => {
-    res.send(results);
+    if (results) {
+      res.send(results);
+    } else {
+      res.send(error);
+    }
   });
 });
 
 app.get("/get-billing-history", (req, res) => {
-    connection.query(`SELECT * FROM orders`, (error, results, fields) => {
+  connection.query(`SELECT * FROM orders`, (error, results, fields) => {
+    if (results) {
       res.send(results);
-    });
+    } else {
+      res.send(error);
+    }
   });
+});
 
 app.post("/create-crate", (req, res) => {
-  console.log("Koca: req ", req.body);
   const user_id = req.body.clientId;
   const company_id = req.body.companyId;
   const crate_name = req.body.crateName;
@@ -96,12 +117,43 @@ app.post("/create-crate", (req, res) => {
   const crate_shelf_id = req.body.address;
 
   connection.query(
-    `INSERT INTO crate_info values(0, 1, ${company_id}, "test", "crate_contents", 2, 1, "active")`,
+    `INSERT INTO crate_info values(0, ${user_id}, ${company_id}, ${crate_name}, ${crate_contents}, ${crate_location}, ${crate_shelf_id}, "active")`,
     function (error, results, fields) {
-      console.log("Koca: ", results);
-      console.log("fields: ", fields);
-      console.log("error: ", error);
-      res.send(results);
+      if (results) {
+        res.send(results);
+      } else {
+        res.send(error);
+      }
+    }
+  );
+});
+
+app.post("/request-delivery", (req, res) => {
+  const crate_id = req.body.crate_id;
+  connection.query(
+    `UPDATE crate_info set delivery_status=active where crate_id=${crate_id}`,
+    function (error, results, fields) {
+      if (results) {
+        res.send(results);
+      } else {
+        res.send(error);
+      }
+    }
+  );
+});
+
+app.post("/add-item", (req, res) => {
+  const user_id = req.body.itemName;
+  const item_type = req.body.itemType;
+
+  connection.query(
+    `INSERT INTO items values(0, ${user_id}, ${item_type}, false)`,
+    function (error, results, fields) {
+      if (results) {
+        res.send(results);
+      } else {
+        res.send("Unable to add item", error);
+      }
     }
   );
 });
